@@ -5,13 +5,34 @@
    • NEWS (crimson) / OFFER (gold) badges, headline, line, link.
    • Decline / Allow buttons — opt in/out of future news & offers.
    • Pauses on hover/focus; dots to jump; respects reduced-motion.
-   • Shows once until a choice is stored (localStorage bl_news_optin).
+   • Shows once per choice, then auto-returns WINDOW ms later so
+     visitors see fresh news (localStorage bl_news_optin = {choice,ts}).
    • Language follows <html lang> (en / zh / ms; others → en).
 ════════════════════════════════════════════════════════════════ */
 (function () {
   "use strict";
   var KEY = "bl_news_optin", DUR = 5000;
-  try { if (localStorage.getItem(KEY)) return; } catch (e) {}
+  // Re-show the card this long after the visitor's last choice, so returning
+  // visitors get fresh news/offers instead of a card that's gone forever.
+  var WINDOW = 30 * 24 * 60 * 60 * 1000; // 30 days
+
+  // True when a still-fresh choice exists and the card should stay hidden.
+  function suppressed() {
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (!raw) return false;
+      var rec = null;
+      try { rec = JSON.parse(raw); } catch (e) {}
+      if (!rec || typeof rec.ts !== "number") {
+        // Legacy plain-string value ("allowed"/"declined") with no timestamp —
+        // start the clock from this visit so it re-appears one WINDOW later.
+        try { localStorage.setItem(KEY, JSON.stringify({ choice: raw || "declined", ts: Date.now() })); } catch (e2) {}
+        return true;
+      }
+      return (Date.now() - rec.ts) < WINDOW;
+    } catch (e) { return false; }
+  }
+  if (suppressed()) return;
 
   var lang = (document.documentElement.lang || "en").slice(0, 2).toLowerCase();
   var UI = {
@@ -152,7 +173,7 @@
 
   function decide(choice) {
     decided = true; clearInterval(timer); el.classList.remove("run");
-    try { localStorage.setItem(KEY, choice); } catch (e) {}
+    try { localStorage.setItem(KEY, JSON.stringify({ choice: choice, ts: Date.now() })); } catch (e) {}
     q(".blnt-thanks-label").textContent = choice === "allowed" ? ui.thanksIn : ui.thanksOut;
     el.classList.add("done");
     setTimeout(function () { el.classList.remove("show"); setTimeout(function () { el.remove(); }, 600); }, 1500);
