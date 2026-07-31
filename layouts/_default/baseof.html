@@ -100,6 +100,13 @@
   {{ end }}
   {{ $jsVer := substr (md5 (readFile "static/js/main.js")) 0 10 }}
   <script src="{{ "js/main.js" | relURL }}?v={{ $jsVer }}" defer></script>
+  {{/* Cookie consent (GDPR/PDPA) + News & offers notification. Self-contained,
+       language-aware (read from <html lang>), each shows once until the visitor
+       chooses. Hashed cache-busters so a copy change ships immediately. */}}
+  {{ $ccVer := substr (md5 (readFile "static/js/bl-cookie-consent.js")) 0 10 }}
+  <script src="{{ "js/bl-cookie-consent.js" | relURL }}?v={{ $ccVer }}" defer></script>
+  {{ $nlVer := substr (md5 (readFile "static/js/bl-news-loop.js")) 0 10 }}
+  <script src="{{ "js/bl-news-loop.js" | relURL }}?v={{ $nlVer }}" defer></script>
   {{ if ne .Section "" }}
     {{/* Sidebar collapse, TOC scroll-spy, code copy buttons, search — all scoped
          to the Hextra docs layout, which our custom main.js knows nothing about. */}}
