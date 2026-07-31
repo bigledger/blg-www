@@ -43,6 +43,11 @@
   var items = DATA[lang] || DATA.en;
 
   var css = ''
+  /* re-enable native cursor over the card (site hides it via
+     body.custom-cursor * { cursor:none !important } and draws a JS cursor
+     that sits below our z-index) — higher specificity so this wins */
+  + 'body.custom-cursor .blnt,body.custom-cursor .blnt *{cursor:auto !important}'
+  + 'body.custom-cursor .blnt a,body.custom-cursor .blnt button{cursor:pointer !important}'
   + '.blnt{position:fixed;left:24px;top:24px;z-index:10000;width:min(370px,calc(100vw - 32px));'
   + 'font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:#F3F3ED;'
   + 'background:linear-gradient(180deg,rgba(20,20,20,.94),rgba(12,12,12,.94));backdrop-filter:blur(18px) saturate(150%);-webkit-backdrop-filter:blur(18px) saturate(150%);'
@@ -57,7 +62,7 @@
   + '.blnt-eyebrow{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:3px 8px;border-radius:20px;margin-bottom:9px}'
   + '.blnt-eyebrow.news{color:#FF1F47;background:rgba(220,20,60,.14);border:1px solid rgba(255,255,255,.12)}'
   + '.blnt-eyebrow.offer{color:#E8B33D;background:rgba(232,179,61,.14);border:1px solid rgba(232,179,61,.32)}'
-  + '.blnt-title{font-size:14.5px;font-weight:700;letter-spacing:-.01em;margin:0 0 4px}'
+  + '.blnt-title{font-size:14.5px;font-weight:700;letter-spacing:-.01em;margin:0 0 4px;color:#F3F3ED}'
   + '.blnt-desc{font-size:12.5px;color:#B6B6AC;margin:0 0 11px;line-height:1.5}'
   + '.blnt-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:13px}'
   + '.blnt-link{font:600 12px inherit;color:#FF1F47;text-decoration:none;display:inline-flex;align-items:center;gap:5px}'
@@ -161,6 +166,12 @@
   el.addEventListener("focusout", function () { if (decided) return; restartBar(); schedule(); });
 
   document.body.appendChild(el);
+  // inline !important cursor so the native pointer always shows over the card
+  el.style.setProperty("cursor", "auto", "important");
+  (function () {
+    var hit = el.querySelectorAll("a,button");
+    for (var k = 0; k < hit.length; k++) hit[k].style.setProperty("cursor", "pointer", "important");
+  })();
   paint();
   // slight stagger after the cookie card so the two corners don't slam in together
   setTimeout(function () {
